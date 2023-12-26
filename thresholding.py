@@ -16,11 +16,7 @@ plt.imshow(edges, cmap="gray")
 
 plt.imshow(median, cmap='gray')
 # plt.hist(median.flat, bins=100, range=(100,255))  #.flat returns the flattened numpy array (1D)
-# Apply multi-Otsu threshold
 thresholds = threshold_multiotsu(median, classes=4)
-
-# Digitize (segment) original image into multiple classes.
-#np.digitize assign values 0, 1, 2, 3, ... to pixels in each class.
 regions = np.digitize(median, bins=thresholds)
 plt.imshow(regions)
 
@@ -56,4 +52,4 @@ all_segments_cleaned[segm3_closed] = (0,0,1)
 all_segments_cleaned[segm4_closed] = (1,1,0)
 # all_segments_cleaned[segm5_closed] = (1,0,1)
 
-plt.imshow(all_segments_cleaned)  #All the noise should be cleaned now
+plt.imshow(all_segments_cleaned)
