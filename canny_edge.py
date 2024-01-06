@@ -1,7 +1,7 @@
 import numpy as np
 import cv2 as cv
 from matplotlib import pyplot as plt
-img = cv.imread('img1.jpg', cv.IMREAD_GRAYSCALE)
+img = cv.imread('contrast_image.jpg', cv.IMREAD_GRAYSCALE)
 blur = cv.GaussianBlur(img, (3, 3), 0)
 cv.imshow("blur method", blur)
 

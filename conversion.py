@@ -13,5 +13,5 @@ final_image = np.uint8(rescaled_image)
 
 final_image = Image.fromarray(final_image)
 final_image.show()
-final_image.save('img1.jpg')
+final_image.save('contrast_image.jpg')
 final_image.save('img1.png')

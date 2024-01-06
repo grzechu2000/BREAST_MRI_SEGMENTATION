@@ -4,20 +4,20 @@ from skimage.filters import threshold_multiotsu
 import cv2
 
 
-img = cv2.imread("img1.jpg", 0)
+img = cv2.imread("preprocess.jpg", 0)
 
 from skimage.restoration import denoise_tv_chambolle
 denoised_img = denoise_tv_chambolle(img, weight=0.1, eps=0.0002, max_num_iter=200, channel_axis=False)
 
-median = cv2.medianBlur(img, 3)
-edges = cv2.Canny(median, 160, 200)
-plt.imshow(edges, cmap="gray")
+# median = cv2.medianBlur(img, 3)
+# edges = cv2.Canny(median, 160, 200)
+# plt.imshow(edges, cmap="gray")
 
 
-plt.imshow(median, cmap='gray')
+plt.imshow(img, cmap='gray')
 # plt.hist(median.flat, bins=100, range=(100,255))  #.flat returns the flattened numpy array (1D)
-thresholds = threshold_multiotsu(median, classes=4)
-regions = np.digitize(median, bins=thresholds)
+thresholds = threshold_multiotsu(img, classes=3)
+regions = np.digitize(img, bins=thresholds)
 plt.imshow(regions)
 
 segm1 = (regions == 0)
@@ -44,7 +44,7 @@ segm4_closed = nd.binary_closing(segm4_opened, np.ones((3,3)))
 # segm5_opened = nd.binary_opening(segm5, np.ones((3,3)))
 # segm5_closed = nd.binary_closing(segm5_opened, np.ones((3,3)))
 
-all_segments_cleaned = np.zeros((median.shape[0], median.shape[1], 3))
+all_segments_cleaned = np.zeros((img.shape[0], img.shape[1], 3))
 
 all_segments_cleaned[segm1_closed] = (1,0,0)
 all_segments_cleaned[segm2_closed] = (0,1,0)
