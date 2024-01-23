@@ -11,91 +11,172 @@ from skimage.filters import median, gaussian
 from skimage.filters import try_all_threshold, threshold_minimum, threshold_yen
 from skimage import feature
 from skimage import filters
-
+from skimage.filters import gaussian
+from skimage.segmentation import active_contour, flood_fill, flood, watershed
+from skimage.segmentation import morphological_geodesic_active_contour, inverse_gaussian_gradient
+from skimage.morphology import disk
 
 img = cv2.imread("contrast_image_2.jpg", 0)
 img2 = cv2.imread("contrast_image.jpg", 0)
 
-# Preprocessing for thresholding includes, heavy gamma adjustment, value > 2 and
-# gaussian blur of image results below
+plt.imshow(img2, cmap='gray')
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Original Image')
+plt.show()
 
-
-footprint = rectangle(1, 3)
-
+from scipy import ndimage as ndi
 
 img2 = exposure.adjust_gamma(img2, 3)
-img2 = gaussian(img2, sigma=1)
 plt.imshow(img2, cmap='gray')
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Gamma Corrected Image y = 2')
+plt.show()
+
+
+
+s = np.linspace(0, 2*np.pi, 400)
+r = 200 + 200*np.sin(s)
+c = 200 + 200*np.cos(s)
+init = np.array([r, c]).T
+snake = active_contour(gaussian(img2, sigma=1), init, alpha=0.015, beta=10, gamma=0.001)
+fig, ax = plt.subplots(figsize=(7, 7))
+ax.imshow(img2, cmap=plt.cm.gray)
+ax.plot(init[:, 1], init[:, 0], '--r', lw=3)
+ax.plot(snake[:, 1], snake[:, 0], '-b', lw=3)
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Active contour - snakes method')
+
+plt.show()
+
+from skimage.util import img_as_ubyte
+from skimage.filters import rank
+
+image = img_as_ubyte(img2)
+
+img2 = gaussian(img2, sigma=1)
+
+markers = rank.gradient(img2, disk(5)) < 10
+markers = ndi.label(markers)[0]
+
+# local gradient (disk(2) is used to keep edges thin)
+gradient = rank.gradient(img2, disk(2))
+
+# process the watershed
+labels = watershed(gradient, markers)
+
+# display results
+fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8, 8),
+                         sharex=True, sharey=True)
+ax = axes.ravel()
+
+ax[0].imshow(image, cmap=plt.cm.gray)
+ax[0].set_title("Original")
+
+ax[1].imshow(gradient, cmap=plt.cm.nipy_spectral)
+ax[1].set_title("Local Gradient")
+
+ax[2].imshow(markers, cmap=plt.cm.nipy_spectral)
+ax[2].set_title("Markers")
+
+ax[3].imshow(image, cmap=plt.cm.gray)
+ax[3].imshow(labels, cmap=plt.cm.gray, alpha=.5)
+ax[3].set_title("Segmented")
+
+for a in ax:
+    a.axis('off')
+
+fig.tight_layout()
+plt.show()
+
+
+plt.imshow(img2, cmap='gray')
+plt.show()
+
+geodesic = morphological_geodesic_active_contour(img2, 100)
+plt.imshow(geodesic, cmap='gray')
 plt.show()
 
 edges1 = feature.canny(img2)
 plt.imshow(edges1, cmap='gray')
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Canny threshold')
 plt.show()
 edges2 = feature.canny(img2, sigma=3)
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Canny threshold sigma = 3')
 plt.imshow(edges2, cmap='gray')
 plt.show()
 
 edge_roberts = filters.roberts(img2)
 plt.imshow(edge_roberts, cmap='gray')
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Roberts threshold')
 plt.show()
 edge_sobel = filters.sobel(img2)
 plt.imshow(edge_sobel, cmap='gray')
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Sobel threshold')
 plt.show()
 edge_laplace = filters.laplace(img2)
 plt.imshow(edge_laplace, cmap='gray')
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Laplace threshold')
 plt.show()
-
-thresh = threshold_yen(img2)
-bin = img2 > thresh
+from skimage.filters import threshold_otsu, threshold_isodata, threshold_li, threshold_minimum, threshold_mean
+thresh_yen = threshold_yen(img2)
+bin = img2 > thresh_yen
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Yen threshold')
 plt.imshow(bin, cmap='gray')
 plt.show()
-fig2, ax2 = try_all_threshold(img2, figsize=(10, 8), verbose=False)
+
+thresh_otsu = threshold_otsu(img2)
+bin = img2 > thresh_otsu
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Otsu threshold')
+plt.imshow(bin, cmap='gray')
+plt.show()
+
+thresh_minimum = threshold_minimum(img2)
+bin = img2 > thresh_minimum
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Minimum threshold')
+plt.imshow(bin, cmap='gray')
 plt.show()
 
 
+thresh_li = threshold_li(img2)
+bin = img2 > thresh_li
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Li threshold')
+plt.imshow(bin, cmap='gray')
+plt.show()
 
 
-# plt.imshow(img, cmap='gray')
-# plt.show()
-# plt.hist(median.flat, bins=100, range=(100,255))  #.flat returns the flattened numpy array (1D)
-# thresholds = threshold_multiotsu(img, classes=3)
-# thresh = threshold_otsu(img)
-# binary = img > thresh
-# plt.imshow(binary, cmap='gray')
-# plt.show()
-# regions = np.digitize(img, bins=thresholds)
-# plt.imshow(regions)
-#
-# segm1 = (regions == 0)
-# segm2 = (regions == 1)
-# segm3 = (regions == 2)
-# segm4 = (regions == 3)
-# # segm5 = (regions == 4)
-#
-#
-# from scipy import ndimage as nd
-#
-# segm1_opened = nd.binary_opening(segm1, np.ones((3,3)))
-# segm1_closed = nd.binary_closing(segm1_opened, np.ones((3,3)))
-#
-# segm2_opened = nd.binary_opening(segm2, np.ones((3,3)))
-# segm2_closed = nd.binary_closing(segm2_opened, np.ones((3,3)))
-#
-# segm3_opened = nd.binary_opening(segm3, np.ones((3,3)))
-# segm3_closed = nd.binary_closing(segm3_opened, np.ones((3,3)))
-#
-# segm4_opened = nd.binary_opening(segm4, np.ones((3,3)))
-# segm4_closed = nd.binary_closing(segm4_opened, np.ones((3,3)))
-#
-# # segm5_opened = nd.binary_opening(segm5, np.ones((3,3)))
-# # segm5_closed = nd.binary_closing(segm5_opened, np.ones((3,3)))
-#
-# all_segments_cleaned = np.zeros((img.shape[0], img.shape[1], 3))
-#
-# all_segments_cleaned[segm1_closed] = (1,0,0)
-# all_segments_cleaned[segm2_closed] = (0,1,0)
-# all_segments_cleaned[segm3_closed] = (0,0,1)
-# all_segments_cleaned[segm4_closed] = (1,1,0)
-# # all_segments_cleaned[segm5_closed] = (1,0,1)
-#
-# plt.imshow(all_segments_cleaned)
+thresh_iso = threshold_isodata(img2)
+bin = img2 > thresh_iso
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Isodata threshold')
+plt.imshow(bin, cmap='gray')
+plt.show()
+
+thresh_mean = threshold_mean(img2)
+bin = img2 > thresh_mean
+plt.xlabel('Pixels X')
+plt.ylabel('Pixels Y')
+plt.title('Mean threshold')
+plt.imshow(bin, cmap='gray')
+plt.show()
